@@ -1,0 +1,4 @@
+.env
+garbage.py
+all_chunks.pkl
+faiss_index.idx
