@@ -37,20 +37,20 @@ api_key for [AI21 embedding mpdel](https://studio.ai21.com/account/api-key?sourc
 
 ## Running the Project
 ### Using Docker
+make sure you have Dockerfile and docker-compose.yml files
 Build and run the Docker container:
 ```
-  docker build -t pdf-qa-agent .
-  docker run -p 8000:8000 -p 8501:8501 pdf-qa-agent
+  docker-compose up
 ```
 
 ### Without Docker
 Run the FastAPI server:
 ```
-uvicorn server:app --host 0.0.0.0 --port 8000
+  uvicorn server:app --host 127.0.0.1 --port 8000
 ```
-Run the Streamlit UI:
+Run the Streamlit UI - streamlit runs on port 8501 by default:
 ```
-streamlit run gui.py --server.port 8501 --server.enableCORS false
+  streamlit run gui.py
 ```
 
 ## Project Structure
@@ -75,7 +75,7 @@ streamlit run gui.py --server.port 8501 --server.enableCORS false
   - utils/rag_utils.py: Contains utility functions for extracting text from PDFs.
   - gui.py: Contains the Streamlit UI code.
   - server.py: Contains the FastAPI server code.
-  - rag.py: Contains the RAG class with all the logic for document processing, embedding, vectorstore and question answering.
+  - rag.py: The RAG class contains all the logic for document processing, embedding, vectorstore, and question answering.
   - requirements.txt: List of dependencies required for the project.
   - Dockerfile: Docker configuration file.
   - README.md: This file, containing project instructions and information.
