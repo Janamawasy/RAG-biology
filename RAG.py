@@ -10,7 +10,10 @@ from langchain_ai21 import AI21Embeddings
 from langchain_community.vectorstores import FAISS
 from langchain_ai21 import AI21LLM
 from fastapi import HTTPException
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 load_dotenv()
 
 class RAG():
@@ -27,6 +30,7 @@ class RAG():
             self.__retriever = self.__retrieve()
             self.__rag_chain = self.__create_chain()
         except Exception as e:
+            logging.error(f"Error occurred while initializing the RAG: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while initializing the RAG: {str(e)}")
 
 
@@ -41,6 +45,7 @@ class RAG():
                 all_texts.append(text)
             return all_texts
         except Exception as e:
+            logging.error(f"Error occurred while uploading data: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while uploading data: {str(e)}")
 
     def __documenting_text(self):
@@ -51,6 +56,7 @@ class RAG():
             documents = [Document(page_content=text) for text in self.__all_texts]
             return documents
         except Exception as e:
+            logging.error(f"Error occurred while documenting text: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while documenting text: {str(e)}")
 
 
@@ -63,6 +69,7 @@ class RAG():
             splits = text_splitter.split_documents(self.__documents)
             return splits
         except Exception as e:
+            logging.error(f"Error occurred while splitting documents: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while splitting documents: {str(e)}")
 
 
@@ -75,8 +82,8 @@ class RAG():
             faiss_index = FAISS.from_texts([doc.page_content for doc in self.__splits], embeddings_model)
             return faiss_index
         except Exception as e:
+            logging.error(f"Error occurred while embedding and vector storing: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while embedding and vector storing: {str(e)}")
-
 
     def __retrieve(self):
         """
@@ -86,6 +93,7 @@ class RAG():
             retriever = self.__faiss_index.as_retriever()
             return retriever
         except Exception as e:
+            logging.error(f"Error occurred while initializing retriever: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while initializing retriever: {str(e)}")
 
 
@@ -95,13 +103,13 @@ class RAG():
         """
         try:
             system_prompt = (
-                "You are an assistant for questions related to biology. "
+                "You are an assistant for questions related to biology and cell structure. "
                 "Please answer questions within this domain."
     
                 "You are an assistant for question-answering tasks. "
                 "Use the following pieces of retrieved context to answer the question."
                 "keep the answer concise"
-                "If you don't know the answer, or the question not related to the context return '-1'"
+                "If you don't know the answer, or the question not related to the context return this answer: your question is not related to the context or could not be answered."
     
                 "context: {context}"
     
@@ -119,6 +127,7 @@ class RAG():
             rag_chain = create_retrieval_chain(self.__retriever, question_answer_chain)
             return rag_chain
         except Exception as e:
+            logging.error(f"Error occurred while creating the chain: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while creating the chain: {str(e)}")
 
 
@@ -131,4 +140,5 @@ class RAG():
             else:
                 raise Exception("Question is required")
         except Exception as e:
+            logging.error(f"Error occurred while submitting question: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while submitting question: {str(e)}")

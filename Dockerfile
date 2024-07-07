@@ -1,17 +1,14 @@
-# Use an official Python runtime as a parent image
-FROM python:3.8-slim
+FROM python:3.12
 
-# Set the working directory in the container
 WORKDIR /app
 
-# Copy all files from the current directory to the working directory in the container
-COPY . .
+COPY requirements.txt /app
 
-# Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install -r requirements.txt
 
-# Expose ports
-EXPOSE 8501 8000
+COPY . /app
 
-# Command to run both the server and the UI
-CMD ["sh", "-c", "streamlit run ui.py & uvicorn server:app --host 0.0.0.0 --port 8000 --reload"]
+EXPOSE 8000
+EXPOSE 8501
+
+CMD ["sh", "-c", "streamlit run ui.py & uvicorn server:app --host 127.0.0.1 --port 8000 --reload"]

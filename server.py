@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI, HTTPException
 from RAG import RAG
 
@@ -27,8 +28,13 @@ def get_answer(question: str):
             raise HTTPException(status_code=400, detail="Question is required")
         rag_app = RAG()
         answer = rag_app.submit_question(question)
-        if answer == "-1" or answer.strip() == 'System: -1' or answer == '/n-1' or answer.strip() == '/nSystem: -1':
-            return {"answer": "he question is not related to the context or could not be answered."}
+        if not answer:
+            return {"answer": "The answer could not be generated."}
         return {"answer": answer}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
