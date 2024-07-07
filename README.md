@@ -11,7 +11,7 @@ This project is a Question-Answering (QA) system built using Retrieval-Augmented
 ## Prerequisites
 
 - Docker
-- Python 3.10
+- Python 3.12
 - Pip
 - Git
 - Langchain
