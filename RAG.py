@@ -11,28 +11,55 @@ from langchain_community.vectorstores import FAISS
 from langchain_ai21 import AI21LLM
 from fastapi import HTTPException
 import logging
+import json
+
 
 # Configure logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 load_dotenv()
 
-class RAG():
+
+class RAG:
     def __init__(self):
+        '''
+        Initialize the RAG with the necessary components.
+        if the vectorstore is already created, load it. Otherwise, create a new vectorstore.
+        '''
         try:
             self.pdf_paths = ["data/introduction to cells.pdf",
                              "data/introduction to metabolism - enzymes and energy.pdf",
                              "data/the cell cycle and mitosis.pdf"]
             self.__api_key = os.getenv("AI21_API_KEY")
-            self.__all_texts = self.__upload_data()
-            self.__documents = self.__documenting_text()
-            self.__splits = self.__split_documents()
-            self.__faiss_index = self.__embed_vectorStore()
+            self.__config = self.__load_config()
+
+            if self.__config['vectorstore_created'] == 1:
+                print('vectorstore is 1')
+                self.__faiss_index = self.__load_vectorstore()
+
+            else:
+                print('vectorstore is 0')
+                self.__all_texts = self.__upload_data()
+                self.__documents = self.__documenting_text()
+                self.__splits = self.__split_documents()
+                self.__faiss_index = self.__embed_vectorStore()
+
             self.__retriever = self.__retrieve()
             self.__rag_chain = self.__create_chain()
         except Exception as e:
             logging.error(f"Error occurred while initializing the RAG: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while initializing the RAG: {str(e)}")
 
+    def __load_config(self):
+        """
+        Load the configuration file to check if vectorstore is already created.
+        """
+        try:
+            with open('config.json', 'r') as f:
+                config = json.load(f)
+            return config
+        except Exception as e:
+            logging.error(f"Error occurred while loading the config: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error occurred while loading the config: {str(e)}")
 
     def __upload_data(self):
         """
@@ -59,7 +86,6 @@ class RAG():
             logging.error(f"Error occurred while documenting text: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while documenting text: {str(e)}")
 
-
     def __split_documents(self):
         """
         Split documents into smaller chunks for processing.
@@ -72,18 +98,36 @@ class RAG():
             logging.error(f"Error occurred while splitting documents: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while splitting documents: {str(e)}")
 
-
     def __embed_vectorStore(self):
         """
         embedding splits using ai21 embedding model and creating a FAISS vector store for the embedded documents.
         """
         try:
-            embeddings_model = AI21Embeddings(api_key= self.__api_key)
+            embeddings_model = AI21Embeddings(api_key=self.__api_key)
             faiss_index = FAISS.from_texts([doc.page_content for doc in self.__splits], embeddings_model)
+            faiss_index.save_local("faiss_index")
+
+            config = self.__load_config()
+            config['vectorstore_created'] = 1
+            with open('config.json', 'w') as f:
+                json.dump(config, f)
+
+            logging.info("Created and saved new FAISS vector store + updated config file.")
             return faiss_index
         except Exception as e:
             logging.error(f"Error occurred while embedding and vector storing: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while embedding and vector storing: {str(e)}")
+
+    def __load_vectorstore(self):
+        try:
+            embeddings_model = AI21Embeddings(api_key=self.__api_key)
+            faiss_index = FAISS.load_local("faiss_index", embeddings_model, allow_dangerous_deserialization=True)
+
+            logging.info("FAISS index loaded successfully")
+            return faiss_index
+        except Exception as e:
+            logging.error(f"Error occurred while loading the FAISS index: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"Error occurred while loading the FAISS index: {str(e)}")
 
     def __retrieve(self):
         """
@@ -96,23 +140,22 @@ class RAG():
             logging.error(f"Error occurred while initializing retriever: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while initializing retriever: {str(e)}")
 
-
     def __create_chain(self):
         """
         Create the RAG chain with the appropriate prompt.
         """
         try:
             system_prompt = (
-                "You are an assistant for questions related to biology and cell structure. "
+                "You are an assistant for questions related biology"
                 "Please answer questions within this domain."
-    
+
                 "You are an assistant for question-answering tasks. "
                 "Use the following pieces of retrieved context to answer the question."
                 "keep the answer concise"
                 "If you don't know the answer, or the question not related to the context return this answer: your question is not related to the context or could not be answered."
-    
+
                 "context: {context}"
-    
+
                 "question: {input}"
             )
 
@@ -129,7 +172,6 @@ class RAG():
         except Exception as e:
             logging.error(f"Error occurred while creating the chain: {str(e)}", exc_info=True)
             raise HTTPException(status_code=500, detail=f"Error occurred while creating the chain: {str(e)}")
-
 
     def submit_question(self, question):
         """Submit a question to the RAG chain and return the answer"""
