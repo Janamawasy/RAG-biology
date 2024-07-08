@@ -36,6 +36,9 @@ api_key for [AI21 embedding mpdel](https://studio.ai21.com/account/api-key?sourc
 ```
 
 ## Running the Project
+if its the first time running the project make sure to set the 'vectorstore_created' value to 0 in the config.json file.
+otherwise, set it to 1 to use the pre-built VectorStore index.
+
 ### Using Docker
 Build and run the Docker container:
 ```
@@ -59,6 +62,9 @@ streamlit run gui.py --server.port 8501 --server.enableCORS false
   │   ├── introduction to cells.pdf
   │   ├── introduction to metabolism - enzymes and energy.pdf
   │   └── the cell cycle and mitosis.pdf
+  ├── faisis_index
+  │   ├── index.faisis
+  │   ├── index.pkl
   ├── utils
   │   └── rag_utils.py
   ├── gui.py
@@ -67,6 +73,7 @@ streamlit run gui.py --server.port 8501 --server.enableCORS false
   ├── requirements.txt
   ├── Dockerfile
   ├── README.md
+  ├── config.json
   └── .env
 ```
 
@@ -79,7 +86,9 @@ streamlit run gui.py --server.port 8501 --server.enableCORS false
   - requirements.txt: List of dependencies required for the project.
   - Dockerfile: Docker configuration file.
   - README.md: This file, containing project instructions and information.
-
+  - config.json: Configuration file for VectorStore, if it already created and stored 'vectorstore_created' value is 1, if not its 0.
+  - .env: Environment variables file.
+  - faisis_index/: Folder containing the VectorStore index files.
 
 
 

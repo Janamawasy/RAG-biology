@@ -10,6 +10,8 @@ st.write("Ask questions based on the provided PDFs.")
 st.write("  - introduction to cells.")
 st.write("  - introduction to metabolism - enzymes and energy.")
 st.write("  - the cell cycle and mitosis.")
+st.write("")
+st.write("example question: What are the phases of mitosis?")
 
 
 question = st.text_input("Enter your question:")
