@@ -72,6 +72,7 @@ Run the Streamlit UI - streamlit runs on port 8501 by default:
   ├── rag.py
   ├── requirements.txt
   ├── Dockerfile
+  ├── docker-compose.yml
   ├── README.md
   ├── config.json
   └── .env
