@@ -67,7 +67,7 @@ Run the Streamlit UI - streamlit runs on port 8501 by default:
   │   ├── index.pkl
   ├── utils
   │   └── rag_utils.py
-  ├── gui.py
+  ├── ui.py
   ├── server.py
   ├── rag.py
   ├── requirements.txt
